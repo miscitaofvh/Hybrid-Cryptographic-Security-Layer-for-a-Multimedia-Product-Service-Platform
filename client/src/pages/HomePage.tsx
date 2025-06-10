@@ -1,6 +1,6 @@
-import Sidebar from "@/components/layout/Sidebar";
+import Sidebar from "@/components/layout/SideBar";
 import Header from "@/components/layout/Header";
-import PlayerBar from "@/components/layout/PlayerBar";
+import PlayerBar from "@/components/layout/PlayBar";
 import TrackCard from "@/components/track/TrackCard";
 import { useTrackService } from "@/services/TrackService";
 import { useEffect, useState } from "react";

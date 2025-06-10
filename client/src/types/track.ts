@@ -4,4 +4,5 @@ export type Track = {
   audioUrl: string;
   duration: number;
   artists: string[];
+  album: string;
 } 
