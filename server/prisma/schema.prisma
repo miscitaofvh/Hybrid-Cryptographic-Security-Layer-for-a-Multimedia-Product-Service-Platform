@@ -54,6 +54,7 @@ model Track {
   album          String?
   genre          String?
   composer       String?
+  coverUrl       String? 
   metadata       Json?
   encryptedKey   String?
   createdAt      DateTime        @default(now())

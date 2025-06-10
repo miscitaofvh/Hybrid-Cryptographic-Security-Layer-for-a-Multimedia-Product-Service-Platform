@@ -1,15 +1,20 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';  
 import trackRoutes from './routes/trackRoutes.js';
 import cookieParser from 'cookie-parser';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 
 const allowedOrigins = [
   "http://localhost",
   "http://localhost:80",
+  "http://client",
 ];
 
 if (process.env.FRONTEND_URL) {
@@ -31,6 +36,7 @@ app.use(express.json());
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/tracks', trackRoutes);
+app.use("/static", express.static(path.join(__dirname, "static")));
 
 export default app;
 

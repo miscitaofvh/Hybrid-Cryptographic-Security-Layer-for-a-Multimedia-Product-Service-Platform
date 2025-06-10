@@ -1,8 +1,9 @@
 export type Track = {
   id: string;
   title: string;
-  audioUrl: string;
+  coverUrl: string;
   duration: number;
+  album?: string;
+  genre?: string;
   artists: string[];
-  album: string;
-} 
+};

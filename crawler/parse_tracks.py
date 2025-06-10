@@ -3,6 +3,7 @@ import json
 import psycopg2
 from mutagen.mp3 import MP3
 from mutagen.easyid3 import EasyID3
+from mutagen.id3 import ID3, APIC
 from datetime import datetime
 import uuid
 
@@ -24,9 +25,9 @@ except Exception as e:
 
 cursor = conn.cursor()
 
+
 def generate_uuid():
     return str(uuid.uuid4())
-
 
 def extract_metadata(file_path):
     audio = MP3(file_path, ID3=EasyID3)
@@ -48,24 +49,31 @@ def find_or_create_artist(name):
     print(f"🎤 Created artist: {name}")
     return artist_id
 
+def extract_cover_image(file_path):
+    audio = ID3(file_path)
+    for tag in audio.values():
+        if isinstance(tag, APIC):
+            return tag.data 
+    return None
 
 def insert_track(filename, metadata, duration, artist_names):
     track_id = generate_uuid()
     title = metadata.get("title", [filename.replace(".mp3", "")])[0]
-    audio_url = f"/static/tracks/{filename}"
+    audio_url = f"/tracks/{filename}"
     album = metadata.get("album", [None])[0]
     genre = metadata.get("genre", [None])[0]
     composer = metadata.get("composer", [None])[0]
+    conver_url = "http://localhost:3000/static/covers/" + filename.replace(".mp3", ".jpg")
 
     # Thêm track
     cursor.execute("""
         INSERT INTO "Track" (
-            id, title, "audioUrl", duration, album, genre, composer,
-            metadata, "encryptedKey", "createdAt"
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NULL, %s)
+            id, title, "audioUrl", duration, album, genre, composer, 
+            "coverUrl", metadata, "encryptedKey", "createdAt"
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NULL, %s)
     """, (
-        track_id, title, audio_url, duration, album, genre, composer,
-        json.dumps(metadata), datetime.utcnow()
+        track_id, title, audio_url, duration, album, genre, composer, 
+        conver_url, json.dumps(metadata), datetime.utcnow()
     ))
 
     # Thêm quan hệ TrackArtist

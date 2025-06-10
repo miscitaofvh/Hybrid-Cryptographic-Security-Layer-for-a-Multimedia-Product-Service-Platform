@@ -35,8 +35,12 @@ services:
       NODE_ENV: production
     ports:
       - "3000:3000"
+    volumes:
+      - ../crawler/media:/app/tracks
+      - ../crawler/static:/app/static
     depends_on:
       - db
+      - crawler
 
   client:
     build:
