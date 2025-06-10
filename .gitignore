@@ -1,0 +1,4 @@
+**/node_modules
+**/.env
+**/crawler/media
+**/server/prisma/migrations
