@@ -9,13 +9,16 @@ type PlayerBarProps = {
 
 export default function PlayerBar({ track }: PlayerBarProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const { getTrackStreamBlob } = useTrackService();
+  const { fetchAndDecryptTrackStream } = useTrackService(); // lấy hàm giải mã stream
 
   useEffect(() => {
     if (track && audioRef.current) {
-      getTrackStreamBlob(track.id)
-        .then((blob) => {
-          const url = URL.createObjectURL(blob);
+      // Gọi hàm giải mã toàn bộ stream
+      fetchAndDecryptTrackStream(track.id)
+        .then((decryptedBuffer) => {
+          // Tạo blob từ nhạc đã giải mã (giả sử là MP3)
+          const audioBlob = new Blob([decryptedBuffer], { type: "audio/mpeg" });
+          const url = URL.createObjectURL(audioBlob);
           audioRef.current!.src = url;
           audioRef.current!.play();
         })
@@ -23,6 +26,12 @@ export default function PlayerBar({ track }: PlayerBarProps) {
           console.error("Stream error:", err);
         });
     }
+    // Cleanup: xóa object URL khi track đổi
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.src = "";
+      }
+    };
   }, [track?.id]);
 
   if (!track) return null;
@@ -37,7 +46,7 @@ export default function PlayerBar({ track }: PlayerBarProps) {
       style={{ position: "fixed", left: 0, bottom: 0, zIndex: 50 }}
     >
       <motion.img
-        src={track.coverUrl || "/default.jpg"}
+        src={track.coverUrl}
         alt={track.title}
         className="w-14 h-14 rounded shadow-lg object-cover"
         animate={{ rotate: [0, 360] }}

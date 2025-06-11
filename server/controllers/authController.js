@@ -182,8 +182,9 @@ export const login = async (req, res) => {
 
   res.cookie('refresh_token', refreshToken, {
     httpOnly: true,
-    secure: false, // Set to true in production
-    sameSite: 'Strict',
+    secure: true, 
+    sameSite: 'Lax',
+    path: '/',
     maxAge: REFRESH_TOKEN_EXPIRES,
   });
 
@@ -238,9 +239,9 @@ export const logout = async (req, res) => {
 
     res.clearCookie('refresh_token', {
       httpOnly: true,
-      secure: false,
-      sameSite: 'Strict',
-      path: '/', // Ensure path matches the default or set one
+      secure: true,
+      sameSite: 'Lax',
+      path: '/',
     });
     
     res.status(200).json({ message: 'Logged out successfully' });

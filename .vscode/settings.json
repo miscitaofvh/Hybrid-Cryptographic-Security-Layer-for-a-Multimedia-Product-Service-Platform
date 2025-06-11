@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.embeddedhtml": "html",
-        "emscripten.h": "c"
+        "emscripten.h": "c",
+        "kem.h": "c"
     }
 }

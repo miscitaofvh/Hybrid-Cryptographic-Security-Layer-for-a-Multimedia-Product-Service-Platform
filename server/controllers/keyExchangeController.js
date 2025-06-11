@@ -1,7 +1,10 @@
 import prisma from '../config/db.js';
-import crypto from 'crypto';
 import { encapsulate } from '../services/kyberService.js';
 
+/**
+ * Nhận publicKey từ client, thực hiện Kyber encapsulate,
+ * lưu sharedKey vào session để dùng cho mã hóa stream.
+ */
 export const receiveClientPublicKey = async (req, res) => {
   try {
     const { publicKey } = req.body;
@@ -17,14 +20,9 @@ export const receiveClientPublicKey = async (req, res) => {
 
     const { ciphertext, sharedKey } = await encapsulate(publicKey);
 
-    const sharedKeyHex = crypto
-      .createHash('sha512')
-      .update(Buffer.from(sharedKey, 'base64'))
-      .digest('hex');
-
     await prisma.session.update({
       where: { id: sessionId },
-      data: { pqSharedKey: sharedKeyHex },
+      data: { pqSharedKey: sharedKey },
     });
 
     return res.status(200).json({

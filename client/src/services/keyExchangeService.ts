@@ -1,24 +1,32 @@
 import { genKey, decaps } from "@/services/kyberService";
 import API from "@/config/api";
 
-function buf2hex(buf: Uint8Array): string {
-    return Array.from(buf).map(x => x.toString(16).padStart(2, "0")).join("");
+function uint8ToBase64(uint8: Uint8Array): string {
+    // Tối ưu cho browser
+    let binary = '';
+    for (let i = 0; i < uint8.length; i++) {
+        binary += String.fromCharCode(uint8[i]);
+    }
+    return btoa(binary);
 }
 
-function hex2buf(hex: string): Uint8Array {
-    const bytes = [];
-    for (let c = 0; c < hex.length; c += 2) {
-        bytes.push(parseInt(hex.slice(c, c + 2), 16));
+function base64ToUint8(base64: string): Uint8Array {
+    const binary_string = atob(base64);
+    const len = binary_string.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
     }
-    return new Uint8Array(bytes);
+    return bytes;
 }
 
 export async function keyExchange(accessToken: string) {
     const { pk, sk } = await genKey();
+    const publicKeyBase64 = uint8ToBase64(pk);
 
     const { data } = await API.post(
         "/key-exchange",
-        { publicKey: buf2hex(pk) },
+        { publicKey: publicKeyBase64 },
         {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -26,9 +34,12 @@ export async function keyExchange(accessToken: string) {
         }
     );
 
-    const ct = hex2buf(data.ciphertext);
+    const ciphertextBase64 = data.ciphertext;
+    const ct = base64ToUint8(ciphertextBase64);
     const sharedSecret = await decaps(sk, ct);
 
+    console.log('Shared secret:', uint8ToBase64(sharedSecret));
+    
     return {
         publicKey: pk,
         privateKey: sk,

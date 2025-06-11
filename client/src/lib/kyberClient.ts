@@ -1,5 +1,3 @@
-// src/lib/kyberClient.ts
-
 export interface KyberModule extends EmscriptenModule {
   _wasm_keypair(): number;
   _wasm_encaps(pkPtr: number): number;
