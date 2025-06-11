@@ -3,9 +3,9 @@ import { initKyber } from "@/lib/kyberClient";
 import type { KyberModule } from "@/lib/kyberClient";
 
 // Sửa lại theo build của bạn nếu cần!
-export const KYBER_PUBLICKEYBYTES = 800;
-export const KYBER_SECRETKEYBYTES = 1632;
-export const KYBER_CIPHERTEXTBYTES = 768;
+export const KYBER_PUBLICKEYBYTES = 1184;
+export const KYBER_SECRETKEYBYTES = 2400;
+export const KYBER_CIPHERTEXTBYTES = 1088;
 export const KYBER_SSBYTES = 32;
 
 /** Generate Kyber keypair, trả về { pk, sk } */

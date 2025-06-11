@@ -1,7 +1,19 @@
-// controllers/trackController.js
 import prisma from "../config/db.js";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
+
+function deriveSegmentKey(sharedSecret, segmentIndex) {
+  const secretBytes = Buffer.from(sharedSecret, "base64");
+  const idxBuf = Buffer.alloc(4);
+  idxBuf.writeUInt32BE(segmentIndex, 0);
+
+  return crypto.createHash("sha256")
+    .update(secretBytes)
+    .update(idxBuf)
+    .digest()
+    .subarray(0, 16);
+}
 
 // GET /tracks/get-tracks
 export async function getTracks(req, res) {
@@ -49,32 +61,66 @@ export async function getTrackById(req, res) {
 // GET /tracks/:id/stream
 export async function streamTrack(req, res) {
   const { id } = req.params;
+
+  const sharedSecret = req.session?.sharedSecret;
+  if (!sharedSecret) {
+    return res.status(401).json({ error: "Missing shared secret. Please perform key exchange first." });
+  }
+
   try {
     const track = await prisma.track.findUnique({ where: { id } });
     if (!track) return res.status(404).json({ error: "Track not found" });
 
     const filePath = track.audioUrl;
-
-    console.log("Streaming track from path:", filePath);
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: "Audio file not found" });
     }
 
-    const ext = path.extname(filePath).toLowerCase();
-    let mimeType = "application/octet-stream";
-    if (ext === ".mp3") mimeType = "audio/mpeg";
-    if (ext === ".mp4") mimeType = "video/mp4";
-    if (ext === ".wav") mimeType = "audio/wav";
-    if (ext === ".ogg") mimeType = "audio/ogg";
-
+    const segmentSize = 1024 * 1024;
     const stat = fs.statSync(filePath);
+    const totalSegments = Math.ceil(stat.size / segmentSize);
+
     res.writeHead(200, {
-      "Content-Type": mimeType,
-      "Content-Length": stat.size,
+      "Content-Type": "application/octet-stream",
+      "X-Segments": totalSegments,
+      "X-File-Size": stat.size,
     });
 
-    const readStream = fs.createReadStream(filePath);
-    readStream.pipe(res);
+    const fd = fs.openSync(filePath, "r");
+    let offset = 0, segmentIndex = 0;
+    const buffer = Buffer.alloc(segmentSize);
+
+    while (offset < stat.size) {
+      const readBytes = fs.readSync(fd, buffer, 0, segmentSize, offset);
+      const segmentData = buffer.slice(0, readBytes);
+
+      const segmentKey = deriveSegmentKey(sharedSecret, segmentIndex);
+
+      // Tạo IV ngẫu nhiên cho AES-GCM (12 bytes)
+      const iv = crypto.randomBytes(12);
+      const cipher = crypto.createCipheriv("aes-128-gcm", segmentKey, iv);
+      const encSegment = Buffer.concat([cipher.update(segmentData), cipher.final()]);
+      const tag = cipher.getAuthTag();
+      console.log("Shared secret:", sharedSecret);
+      console.log(`Segment ${segmentIndex} encrypted with key: ${segmentKey.toString("hex")}`);
+      
+      // Format: [segmentIndex|iv|tag|encSegmentLength|encSegment]
+      const meta = Buffer.alloc(4 + 12 + 16 + 4);
+      meta.writeUInt32BE(segmentIndex, 0);             // 0-3: segmentIndex
+      iv.copy(meta, 4);                                // 4-15: IV
+      tag.copy(meta, 16);                              // 16-31: GCM tag
+      meta.writeUInt32BE(encSegment.length, 32);       // 32-35: encSegment length
+
+      res.write(meta);
+      res.write(encSegment);
+
+      offset += readBytes;
+      segmentIndex += 1;
+    }
+
+    fs.closeSync(fd);
+    res.end();
+
   } catch (err) {
     console.error("Failed to stream track", err);
     res.status(500).json({ error: "Failed to stream track" });
