@@ -23,9 +23,24 @@ services:
     depends_on:
       - db
 
+  crawler:
+    build:
+      context: ../crawler
+    container_name: crawler
+    depends_on:
+      - db
+    environment:
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASS: ${POSTGRES_PASSWORD}
+      DB_HOST: db
+      DB_PORT: 5432
+    volumes:
+      - ../crawler/media:/app/media
+
   server:
     build:
-      context: ../server      
+      context: ../server
     container_name: server
     restart: unless-stopped
     environment:
@@ -44,28 +59,13 @@ services:
 
   client:
     build:
-      context: ../client     
+      context: ../client
     container_name: client
     restart: unless-stopped
     ports:
-      - "80:80"              
+      - "80:80"
     depends_on:
       - server
-
-  crawler:
-    build:
-      context: ../crawler
-    container_name: crawler
-    depends_on:
-      - db
-    environment:
-      DB_NAME: ${POSTGRES_DB}
-      DB_USER: ${POSTGRES_USER}
-      DB_PASS: ${POSTGRES_PASSWORD}
-      DB_HOST: db
-      DB_PORT: 5432
-    volumes:
-      - ../crawler/media:/app/media
-
+    
 volumes:
   db_data:

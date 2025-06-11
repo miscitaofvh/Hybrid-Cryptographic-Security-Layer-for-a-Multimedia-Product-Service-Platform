@@ -59,7 +59,7 @@ def extract_cover_image(file_path):
 def insert_track(filename, metadata, duration, artist_names):
     track_id = generate_uuid()
     title = metadata.get("title", [filename.replace(".mp3", "")])[0]
-    audio_url = f"/tracks/{filename}"
+    audio_url = f"/app/tracks/{filename}"
     album = metadata.get("album", [None])[0]
     genre = metadata.get("genre", [None])[0]
     composer = metadata.get("composer", [None])[0]

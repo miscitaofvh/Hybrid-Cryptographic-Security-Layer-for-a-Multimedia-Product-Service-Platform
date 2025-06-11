@@ -1,0 +1,17 @@
+FROM emscripten/emsdk:latest
+
+WORKDIR /build
+
+# Copy source code
+COPY ../emsdk/kyber kyber
+
+# Build Kyber WASM
+RUN cd kyber/kyber1024/ref && \
+    emcc kyber_wrapper.c kem.c indcpa.c ntt.c polyvec.c poly.c cbd.c reduce.c \
+    -o kyber.js \
+    -s EXPORTED_FUNCTIONS='["_wasm_keypair", "_wasm_encaps", "_wasm_decaps"]' \
+    -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap", "getValue", "setValue", "HEAPU8"]' \
+    -s MODULARIZE=1 -s ENVIRONMENT='web,node' \
+    -O3 && \
+    mkdir -p /out && \
+    cp kyber.js kyber.wasm /out/

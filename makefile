@@ -10,7 +10,7 @@ server-install:
 	cd server && npm install
 
 clean:
-	docker builder prune
+	docker builder prune -f
 	
 prisma-generate:
 	cd server && npx prisma generate

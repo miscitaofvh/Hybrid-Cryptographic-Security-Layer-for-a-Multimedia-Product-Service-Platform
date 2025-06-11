@@ -18,14 +18,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      await API.post("/auth/logout", {});
+      await API.post("/auth/logout", {},
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
     } catch (err) {
       console.error("Logout failed", err);
     } finally {
       setAccessToken(null);
-      sessionStorage.removeItem("accessSession"); // nếu bạn lưu accessSession
     }
   };
+
 
   return (
     <AuthContext.Provider value={{ accessToken, setAccessToken, loading, logout }}>

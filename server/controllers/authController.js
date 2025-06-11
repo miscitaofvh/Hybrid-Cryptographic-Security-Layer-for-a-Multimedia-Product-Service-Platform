@@ -235,33 +235,16 @@ export const logout = async (req, res) => {
       where: { id: sessionId },
       data: { revoked: true },
     });
-    res.clearCookie('refresh_token');
+
+    res.clearCookie('refresh_token', {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'Strict',
+      path: '/', // Ensure path matches the default or set one
+    });
+    
     res.status(200).json({ message: 'Logged out successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Logout failed' });
   }
-};
-
-export const setPQKey = async (req, res) => {
-  const { pqPublicKey } = req.body;
-  const sessionId = req.user.sessionId;
-
-  if (!pqPublicKey) {
-    return res.status(400).json({ message: 'Missing pqPublicKey' });
-  }
-
-  // 1. Server tạo Kyber KEM key
-  const { sharedKey, ciphertext } = simulateKyberKEM(pqPublicKey); // Bạn cần thay bằng lib thực tế
-
-  // 2. Lưu sharedKey vào session
-  await prisma.session.update({
-    where: { id: sessionId },
-    data: { pqSharedKey: sharedKey },
-  });
-
-  // 3. Gửi ciphertext cho client để giải mã
-  res.status(200).json({
-    message: 'PQ shared key established',
-    ciphertext: ciphertext,
-  });
 };
