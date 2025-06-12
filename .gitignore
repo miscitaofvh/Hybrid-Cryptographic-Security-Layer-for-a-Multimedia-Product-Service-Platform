@@ -3,4 +3,7 @@
 **/crawler/media
 **/crawler/static
 **/server/prisma/migrations
+**/CA/scripts/pki_system/
+**/CA/.scripts
+**/CA/scripts/certs/
 emsdk/
