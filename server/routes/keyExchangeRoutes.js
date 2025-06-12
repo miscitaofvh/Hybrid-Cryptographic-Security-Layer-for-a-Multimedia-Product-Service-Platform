@@ -1,6 +1,7 @@
 import express from 'express';
 import { receiveClientPublicKey } from '../controllers/keyExchangeController.js';
 import { auth } from '../middleware/auth.js';
+import { verifySignature } from '../middleware/verifySignature.js';
 
 const router = express.Router();
 
@@ -10,6 +11,6 @@ const router = express.Router();
  * - Body: { publicKey: string (base64) }
  * - Phản hồi: { ciphertext: string (base64) }
  */
-router.post('/', auth, receiveClientPublicKey);
+router.post('/', auth, verifySignature, receiveClientPublicKey);
 
 export default router;

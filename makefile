@@ -1,7 +1,7 @@
 .PHONY: up down logs build prisma-generate prisma-migrate server-install server-start prisma-studio format
 
 up:
-	cd docker && docker-compose up --build
+	cd docker && docker-compose up --build -d
 
 down:
 	cd docker && docker-compose down

@@ -92,6 +92,19 @@ services:
     networks:
       - app_net
 
+  ca:
+    build:
+      context: ../ca-server
+    container_name: ca
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ../ca-server/ec_private_key.pem:/app/ec_private_key.pem:ro
+      - ../ca-server/ec_public_key.pem:/app/ec_public_key.pem:ro
+      - ../ca-server/ec_cert.pem:/app/ec_cert.pem:ro
+    networks:
+      - app_net
 volumes:
   db_data:
 

@@ -2,9 +2,9 @@ import Sidebar from "@/components/layout/SideBar";
 import Header from "@/components/layout/Header";
 import PlayerBar from "@/components/layout/PlayerBar";
 import TrackCard from "@/components/track/TrackCard";
-import CreateTrackModal from "@/components/track/CreateTrackModal"; // nhớ import modal này
-import { useAuth } from "@/context/AuthContext"; 
-import { useKey } from "@/context/KeyContext"; 
+import CreateTrackModal from "@/components/track/CreateTrackModal";
+import { useAuth } from "@/context/AuthContext";
+import { useKey } from "@/context/KeyContext";
 import { keyExchange } from "@/services/keyExchangeService";
 import { useTrackService } from "@/services/TrackService";
 import type { Track } from "@/types/track";
@@ -18,21 +18,30 @@ export default function HomePage() {
   const { sharedSecret, setKeyData } = useKey();
   const [showCreateTrack, setShowCreateTrack] = useState(false);
 
+  // Key exchange: chỉ chạy khi chưa có sharedSecret và đã đăng nhập
   useEffect(() => {
-    if (!sharedSecret && accessToken) {
-      keyExchange(accessToken).then(({ publicKey, privateKey, sharedSecret }) => {
+    if (!sharedSecret && accessToken && user) {
+      keyExchange(accessToken, user).then(({ publicKey, privateKey, sharedSecret }) => {
         setKeyData({ publicKey, privateKey, sharedSecret });
         console.log("Key exchange complete:", { publicKey, privateKey, sharedSecret });
+      }).catch(err => {
+        // TODO: Hiển thị thông báo lỗi nếu cần
+        console.error("Key exchange failed:", err);
       });
     }
-  }, [accessToken, sharedSecret, setKeyData]);
+  }, [accessToken, user, sharedSecret, setKeyData]);
 
+  // Lấy danh sách tracks khi đã có sharedSecret
   useEffect(() => {
     if (sharedSecret) {
-      getTracks().then(setTracks);
+      getTracks().then(setTracks).catch(err => {
+        // TODO: Hiển thị lỗi nếu cần
+        console.error("Failed to load tracks:", err);
+      });
     }
   }, [sharedSecret]);
 
+  // Kiểm tra quyền tạo track
   const canCreateTrack = user && (user.role === "admin" || user.role === "artist");
 
   return (
@@ -71,7 +80,7 @@ export default function HomePage() {
             setTracks([track, ...tracks]);
             setShowCreateTrack(false);
           }}
-          artistId={user?.artistId} // Nếu cần truyền artistId
+          artistId={user?.artistId}
         />
       )}
     </div>
