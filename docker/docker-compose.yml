@@ -11,6 +11,8 @@ services:
       - '5432:5432'
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - app_net
 
   pgadmin:
     image: dpage/pgadmin4
@@ -22,6 +24,8 @@ services:
       - "8080:80"
     depends_on:
       - db
+    networks:
+      - app_net
 
   crawler:
     build:
@@ -37,6 +41,8 @@ services:
       DB_PORT: 5432
     volumes:
       - ../crawler/media:/app/media
+    networks:
+      - app_net
 
   server:
     build:
@@ -56,6 +62,8 @@ services:
     depends_on:
       - db
       - crawler
+    networks:
+      - app_net
 
   client:
     build:
@@ -63,9 +71,29 @@ services:
     container_name: client
     restart: unless-stopped
     ports:
-      - "80:80"
+    - "5173:5173"  
+    volumes:
+    - ../client/certs:/app/certs:ro
     depends_on:
       - server
-    
+    networks:
+      - app_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - server
+    networks:
+      - app_net
+
 volumes:
   db_data:
+
+networks:
+  app_net:

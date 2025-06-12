@@ -13,8 +13,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 const allowedOrigins = [
-  "http://localhost",
-  "http://localhost:80",
+  'https://localhost:5173',
+  "https://localhost",
   "http://client",
 ];
 

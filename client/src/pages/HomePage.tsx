@@ -2,6 +2,9 @@ import Sidebar from "@/components/layout/SideBar";
 import Header from "@/components/layout/Header";
 import PlayerBar from "@/components/layout/PlayerBar";
 import TrackCard from "@/components/track/TrackCard";
+import { useAuth } from "@/context/AuthContext"; 
+import { useKey } from "@/context/KeyContext"; 
+import { keyExchange } from "@/services/keyExchangeService";
 import { useTrackService } from "@/services/TrackService";
 import type { Track } from "@/types/track";
 import { useEffect, useState } from "react";
@@ -10,10 +13,22 @@ export default function HomePage() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const { getTracks } = useTrackService();
+  const { accessToken } = useAuth();
+  const { sharedSecret, setKeyData } = useKey();
+
+useEffect(() => {
+  if (!sharedSecret && accessToken) {
+    keyExchange(accessToken).then(({ publicKey, privateKey, sharedSecret }) => {
+      setKeyData({ publicKey, privateKey, sharedSecret });
+      console.log("Key exchange complete:", { publicKey, privateKey, sharedSecret });
+    });
+  }}, [accessToken, sharedSecret, setKeyData]);
 
   useEffect(() => {
-    getTracks().then(setTracks);
-  }, []);
+    if (sharedSecret) {
+      getTracks().then(setTracks);
+    }
+  }, [sharedSecret]);
 
   return (
     <div className="flex h-screen bg-black text-white">

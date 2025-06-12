@@ -1,5 +1,4 @@
 import type { Track } from "@/types/track";
-
 export default function TrackCard({ track, onClick }: { track: Track, onClick: () => void }) {
   const {
     title,

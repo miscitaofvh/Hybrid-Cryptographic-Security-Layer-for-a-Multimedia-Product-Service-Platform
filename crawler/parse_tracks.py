@@ -63,7 +63,7 @@ def insert_track(filename, metadata, duration, artist_names):
     album = metadata.get("album", [None])[0]
     genre = metadata.get("genre", [None])[0]
     composer = metadata.get("composer", [None])[0]
-    conver_url = "http://localhost:3000/static/covers/" + filename.replace(".mp3", ".jpg")
+    conver_url = "https://localhost/static/covers/" + filename.replace(".mp3", ".jpg")
 
     # Thêm track
     cursor.execute("""
