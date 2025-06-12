@@ -42,7 +42,7 @@ async function deriveSegmentKey(sharedSecret: Uint8Array, segmentIndex: number):
     "raw",
     hash.slice(0, 16),
     { name: "AES-GCM" },
-    true, // sua lai thanh false neu can dung key de encrypt
+    false,
     ["decrypt"]
   );
 }

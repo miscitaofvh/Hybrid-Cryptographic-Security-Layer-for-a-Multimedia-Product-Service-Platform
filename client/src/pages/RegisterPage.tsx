@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { register } from "@/services/AuthService";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
@@ -12,29 +11,35 @@ export default function RegisterPage() {
     if (accessToken) {
       navigate("/");
     }
-  }, [accessToken]);
+  }, [accessToken, navigate]);
 
   const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
+    role: "user", // default role
   });
 
   const [error, setError] = useState<string | null>(null);
-  
+  const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
     try {
-      await register(form);
+      await register(form); 
       navigate("/login");
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,6 +84,17 @@ export default function RegisterPage() {
             onChange={handleChange}
             required
           />
+
+          <select
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            className="w-full px-4 py-3 rounded-lg bg-[#0d1117] border border-[#2c2f33] text-white focus:ring-2 focus:ring-green-500 focus:outline-none transition"
+            required
+          >
+            <option value="user">User</option>
+            <option value="artist">Artist</option>
+          </select>
         </div>
 
         {error && <p className="text-red-400 mt-3 text-sm">{error}</p>}
@@ -86,8 +102,9 @@ export default function RegisterPage() {
         <button
           type="submit"
           className="w-full mt-6 bg-green-500 hover:bg-green-400 text-black font-bold py-3 rounded-lg shadow-md transition duration-300"
+          disabled={loading}
         >
-          Register
+          {loading ? "Registering..." : "Register"}
         </button>
 
         <p className="text-sm text-gray-400 mt-4 text-center">

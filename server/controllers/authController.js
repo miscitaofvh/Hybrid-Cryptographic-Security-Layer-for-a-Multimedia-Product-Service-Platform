@@ -27,7 +27,7 @@ function generateSecureToken() {
 }
 
 export const register = async (req, res) => {
-  const { email, password, username } = req.body;
+  const { email, password, username, role } = req.body;
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing)
@@ -35,7 +35,7 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, username },
+      data: { email, password: hashedPassword, username, role },
     });
     res.status(201).json({ id: user.id, email: user.email });
   } catch (err) {
@@ -248,4 +248,22 @@ export const logout = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Logout failed' });
   }
+};
+
+export const getMe = async (req, res) => {
+  let artistId = null;
+
+  if (req.user.role === "artist") {
+    const artist = await prisma.artist.findUnique({
+      where: { userId: req.user.id },
+      select: { id: true }
+    });
+    artistId = artist?.id || null;
+  }
+
+  return res.json({
+    id: req.user.id,
+    role: req.user.role,
+    artistId,
+  });
 };

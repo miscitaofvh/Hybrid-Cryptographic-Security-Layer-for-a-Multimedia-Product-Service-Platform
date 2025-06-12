@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+  import jwt from 'jsonwebtoken';
 import prisma from '../config/db.js';
 import { sendAnomalyEmail } from '../utils/sendAnomalyEmail.js';
 
